@@ -7,5 +7,9 @@ name = "pypi"
 python_version = "3.8"
 
 [packages]
-cowsay = "*"
-example = {file = "https://github.com/cisagov/skeleton-python-library/archive/v0.1.0.tar.gz"}
+beanie = "*"
+boto3 = "*"
+botocore = "*"
+# This is a dependency of Beanie but we explicitly import it so we should mark
+# it as a requirement.
+motor = "*"
