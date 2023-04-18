@@ -12,6 +12,8 @@ import urllib.request
 # Third-Party Libraries
 from beanie import Document, init_beanie
 from beanie.operators import NotIn
+from boto3 import client as boto3_client
+from botocore.exceptions import ClientError
 from motor.motor_asyncio import AsyncIOMotorClient
 
 default_log_level = "INFO"
@@ -19,8 +21,10 @@ logger = logging.getLogger()
 logger.setLevel(default_log_level)
 
 DEFAULT_KEV_URL = "https://www.cisa.gov/sites/default/files/feeds/known_exploited_vulnerabilities.json"
+DEFAULT_KEV_COLLECTION = "cyhy"
 
 motor_client: AsyncIOMotorClient = None
+ssm_client: boto3_client = None
 
 
 class KEVDoc(Document):
@@ -31,8 +35,7 @@ class KEVDoc(Document):
     class Settings:
         """Optional settings."""
 
-        # Default collection to use
-        name = "kevs"
+        name = DEFAULT_KEV_COLLECTION
         validate_on_save = True
 
 
@@ -89,6 +92,36 @@ async def process_kev_json(json_url, target_db) -> None:
             await remove_outdated(imported_cves)
 
 
+def get_ssm_parameter(parameter_name: str) -> str:
+    """Retrieve the value of the provided SSM Parameter Store key."""
+    try:
+        resp = ssm_client.get_parameter(Name=parameter_name, WithDecryption=True)
+        return resp["Parameter"]["Value"]
+    except ClientError:
+        logging.error("Unable to retrieve SSM Parameter Store key: %s", parameter_name)
+        raise
+
+
+def build_mongodb_uri(
+    ssm_username: str, ssm_password: str, ssm_host: str, ssm_port: str, ssm_auth_db: str
+) -> Optional[str]:
+    """Build a MongoDB database URI from the provided SSM Parameter Store keys."""
+    uri = None
+    try:
+        # Ensure the username and password are safely encoded
+        username = urllib.parse.quote_plus(get_ssm_parameter(ssm_username))
+        password = urllib.parse.quote_plus(get_ssm_parameter(ssm_password))
+        host = get_ssm_parameter(ssm_host)
+        port = get_ssm_parameter(ssm_port)
+        auth_db = get_ssm_parameter(ssm_auth_db)
+        uri = f"mongodb://{username}:{password}@{host}:{port}/{auth_db}"
+    except ClientError as client_err:
+        logging.error("Unable to create MongoDB URI.")
+        logging.exception(client_err)
+
+    return uri
+
+
 def handler(event, context) -> None:
     """Process the event and generate a response.
 
@@ -102,6 +135,7 @@ def handler(event, context) -> None:
     old_log_level = None
 
     global motor_client
+    global ssm_client
 
     # Update the logging level if necessary
     new_log_level = os.environ.get("log_level", default_log_level).upper()
@@ -115,6 +149,10 @@ def handler(event, context) -> None:
     if logging.getLogger().getEffectiveLevel() != logging.getLevelName(new_log_level):
         old_log_level = logging.getLogger().getEffectiveLevel()
         logging.getLogger().setLevel(new_log_level)
+
+    # Set up the SSM client if necessary
+    if ssm_client is None:
+        ssm_client = boto3_client("ssm")
 
     mongodb_uri_elements: List[Tuple[str, Optional[str]]] = []
 
@@ -131,13 +169,15 @@ def handler(event, context) -> None:
         logging.error("Invalid invocation event.")
         return
 
-    # Build a list of tuples to validate and create the MongoDB URI
+    # Build a list of tuples to validate and then use for the build_mongodb_uri()
+    # helper function. The order of variables must match the order of arguments for
+    # the helper function.
     for var in [
-        "db_user",
-        "db_pass",
-        "db_host",
-        "db_port",
-        "db_authdb",
+        "ssm_db_user",
+        "ssm_db_pass",
+        "ssm_db_host",
+        "ssm_db_port",
+        "ssm_db_authdb",
     ]:
         mongodb_uri_elements.append((var, os.environ.get(var)))
 
@@ -147,19 +187,23 @@ def handler(event, context) -> None:
         return
 
     # Determine the database where the KEV data will be inserted
-    write_db = os.environ.get("db_writedb", "db_authdb")
+    write_db = get_ssm_parameter(os.environ.get("ssm_db_writedb", "ssm_db_authdb"))
 
     # Determine if a non-default KEVs JSON URL is being used
     kev_json_url = os.environ.get("json_url", DEFAULT_KEV_URL)
 
     # Determine if a non-default collection is being used
-    db_collection = os.environ.get("target_collection")
+    db_collection = os.environ.get("ssm_db_collection")
     if db_collection is not None:
-        KEVDoc.Settings.name = db_collection
+        KEVDoc.Settings.name = get_ssm_parameter(db_collection)
 
     # We disable mypy here because the variable is typed to have Optional[str] elements
     # but we verify that there are only str elements before this point.
-    mongodb_uri = "mongodb://{}:{}@{}:{}/{}".format(*[v for k, v in mongodb_uri_elements])  # type: ignore
+    mongodb_uri = build_mongodb_uri(*[v for k, v in mongodb_uri_elements])  # type: ignore
+
+    if mongodb_uri is None:
+        logging.error("Unable to import KEV data.")
+        return
 
     # Set up the Motor session if necessary
     if motor_client is None:
