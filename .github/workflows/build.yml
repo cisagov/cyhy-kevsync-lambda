@@ -140,9 +140,8 @@ jobs:
       - test
     strategy:
       matrix:
-        # Python runtime versions supported by AWS
+        # Python runtime versions supported by AWS and this Lambda's configuration
         python-version:
-          - "3.7"
           - "3.8"
           - "3.9"
     steps:
