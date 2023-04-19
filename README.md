@@ -2,13 +2,26 @@
 
 [![GitHub Build Status](https://github.com/cisagov/cyhy-kevsync-lambda/workflows/build/badge.svg)](https://github.com/cisagov/cyhy-kevsync-lambda/actions)
 
-This is a generic skeleton project that can be used to quickly get a
-new [cisagov](https://github.com/cisagov) GitHub
-[AWS Lambda](https://aws.amazon.com/lambda/) project using the Python runtimes
-started. This skeleton project contains [licensing information](LICENSE), as
-well as [pre-commit hooks](https://pre-commit.com) and
-[GitHub Actions](https://github.com/features/actions) configurations
-appropriate for the major languages that we use.
+This Lambda is designed to retrieve the [CISA Known Exploited Vulnerabilities Catalog](https://www.cisa.gov/known-exploited-vulnerabilities-catalog)
+[JSON version](https://www.cisa.gov/sites/default/files/feeds/known_exploited_vulnerabilities_schema.json)
+and import the CVE IDs into a MongoDB collection.
+
+## Lambda configuration ##
+
+This Lambda supports the following Lambda environment variables in its
+deployment configuration:
+
+| Name | Description | Type | Default | Required |
+| ---- | ----------- | ---- | ------- | -------- |
+| json\_url | The URL for the JSON to be processed. | `string` | `"https://www.cisa.gov/sites/default/files/feeds/known_exploited_vulnerabilities.json"` | no |
+| log\_level | The logging level for the Lambda. | `string` | `"INFO"` | no |
+| ssm\_db\_authdb | The AWS SSM Parameter Store key that contains the authorization database to use for the MongoDB connection. | `string` | n/a | yes |
+| ssm\_db\_collection | The AWS SSM Parameter Store key that contains the MongoDB collection to write to in the MongoDB database. | `string` | The default collection is used if this variable is not provided. | no |
+| ssm\_db\_host | The AWS SSM Parameter Store key that contains the hostname for the database to use for the MongoDB connection. | `string` | n/a | yes |
+| ssm\_db\_pass | The AWS SSM Parameter Store key that contains the password for authenticating to the database to use for the MongoDB connection. | `string` | n/a | yes |
+| ssm\_db\_port | The AWS SSM Parameter Store key that contains the port for the database to use for the MongoDB connection. | `string` | n/a | yes |
+| ssm\_db\_user | The AWS SSM Parameter Store key that contains the username for authenticating to the database to use for the MongoDB connection. | `string` | n/a | yes |
+| ssm\_db\_writedb | The AWS SSM Parameter Store key that contains the logical database to write to on the database. | `string` | The value of the `ssm_db_authdb` variable. | no |
 
 ## Building the base Lambda image ##
 
@@ -71,13 +84,6 @@ that will be installed. These files can be updated like so (using the Python
 cd src/py3.9
 pipenv lock
 ```
-
-## New Repositories from a Skeleton ##
-
-Please see our [Project Setup guide](https://github.com/cisagov/development-guide/tree/develop/project_setup)
-for step-by-step instructions on how to start a new repository from
-a skeleton. This will save you time and effort when configuring a
-new repository!
 
 ## Contributing ##
 
