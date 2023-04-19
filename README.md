@@ -45,31 +45,6 @@ docker compose up build_deployment_package
 
 This will output the deployment zip file in the root directory.
 
-## Running the Lambda locally ##
-
-The configuration in this repository allows you run the Lambda locally for
-testing as long as you do not need explicit permissions for other AWS
-services. This can be done with the following command:
-
-```console
-docker compose up --detach run_lambda_locally
-```
-
-You can then invoke the Lambda using the following:
-
-```console
- curl -XPOST "http://localhost:9000/2015-03-31/functions/function/invocations" -d '{}'
-```
-
-The `{}` in the command is the invocation event payload to send to the Lambda
-and would be the value given as the `event` argument to the handler.
-
-Once you are finished you can stop the detached container with the following command:
-
-```console
-docker compose down
-```
-
 ## How to update Python dependencies ##
 
 The Python dependencies are maintained using a [Pipenv](https://github.com/pypa/pipenv)
