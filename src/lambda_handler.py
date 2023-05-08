@@ -157,16 +157,12 @@ def handler(event, context) -> None:
     mongodb_uri_elements: List[Tuple[str, Optional[str]]] = []
 
     # This only runs from a CloudWatch scheduled event invocation
-    trigger_source: Optional[str]
-    trigger_type: Optional[str]
-    if (
-        (trigger_source := event.get("source")) is None
-        or trigger_source != "aws.events"
-    ) or (
-        (trigger_type := event.get("detail-type")) is None
-        or trigger_type != "Scheduled Event"
-    ):
-        logging.error("Invalid invocation event.")
+    if (trigger_source := event.get("source", "")) != "aws.events" or (
+        trigger_type := event.get("detail-type", "")
+    ) != "Scheduled Event":
+        logging.error(
+            "Invalid invocation event: source=%s, type=%s", trigger_source, trigger_type
+        )
         return
 
     # Build a list of tuples to validate and then use for the build_mongodb_uri()
