@@ -24,7 +24,6 @@ DEFAULT_KEV_URL = "https://www.cisa.gov/sites/default/files/feeds/known_exploite
 DEFAULT_KEV_COLLECTION = "cyhy"
 
 motor_client: AsyncIOMotorClient = None
-ssm_client: boto3_client = None
 
 from localstack_client.session import Session
 
@@ -137,7 +136,6 @@ def handler(event, context) -> None:
     old_log_level = None
 
     global motor_client
-    global ssm_client
 
     # Update the logging level if necessary
     new_log_level = os.environ.get("log_level", default_log_level).upper()
@@ -152,9 +150,8 @@ def handler(event, context) -> None:
         old_log_level = logging.getLogger().getEffectiveLevel()
         logging.getLogger().setLevel(new_log_level)
 
-    # Set up the SSM client if necessary
-    if ssm_client is None:
-        Session().client("ssm", endpoint_url="http://localhost:4566")
+    
+    Session().client("ssm", endpoint_url="http://localhost:4566")
 
 
     mongodb_uri_elements: List[Tuple[str, Optional[str]]] = []
