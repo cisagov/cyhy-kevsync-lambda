@@ -26,6 +26,8 @@ DEFAULT_KEV_COLLECTION = "cyhy"
 motor_client: AsyncIOMotorClient = None
 ssm_client: boto3_client = None
 
+from localstack_client.session import Session
+
 
 class KEVDoc(Document):
     """Python class that represents a KEV document."""
@@ -152,7 +154,8 @@ def handler(event, context) -> None:
 
     # Set up the SSM client if necessary
     if ssm_client is None:
-        ssm_client = boto3_client("ssm")
+        Session().client("ssm", endpoint_url="http://localhost:4566")
+
 
     mongodb_uri_elements: List[Tuple[str, Optional[str]]] = []
 
