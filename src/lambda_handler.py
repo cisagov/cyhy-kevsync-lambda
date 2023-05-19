@@ -16,6 +16,7 @@ from boto3 import client as boto3_client
 from botocore.exceptions import ClientError
 from motor.motor_asyncio import AsyncIOMotorClient
 
+
 default_log_level = "INFO"
 logger = logging.getLogger()
 logger.setLevel(default_log_level)
@@ -24,9 +25,7 @@ DEFAULT_KEV_URL = "https://www.cisa.gov/sites/default/files/feeds/known_exploite
 DEFAULT_KEV_COLLECTION = "cyhy"
 
 motor_client: AsyncIOMotorClient = None
-
-from localstack_client.session import Session
-
+ssm_client: boto3_client = None
 
 class KEVDoc(Document):
     """Python class that represents a KEV document."""
@@ -136,6 +135,7 @@ def handler(event, context) -> None:
     old_log_level = None
 
     global motor_client
+    global ssm_client
 
     # Update the logging level if necessary
     new_log_level = os.environ.get("log_level", default_log_level).upper()
@@ -150,9 +150,15 @@ def handler(event, context) -> None:
         old_log_level = logging.getLogger().getEffectiveLevel()
         logging.getLogger().setLevel(new_log_level)
 
-    
-    Session().client("ssm", endpoint_url="http://localhost:4566")
-
+       # Set up the SSM client if necessary
+    if ssm_client is None:
+        ssm_client = boto3_client(
+            'ssm',
+            region_name='us-east-1',  # Replace with the desired AWS region
+            endpoint_url='http://localhost:4566',
+            aws_access_key_id='test',  # Arbitrary access key ID for LocalStack
+            aws_secret_access_key='test'  # Arbitrary secret access key for LocalStack
+)
 
     mongodb_uri_elements: List[Tuple[str, Optional[str]]] = []
 
@@ -168,14 +174,14 @@ def handler(event, context) -> None:
     # Build a list of tuples to validate and then use for the build_mongodb_uri()
     # helper function. The order of variables must match the order of arguments for
     # the helper function.
-    for var in [
-        "ssm_db_user",
-        "ssm_db_pass",
-        "ssm_db_host",
-        "ssm_db_port",
-        "ssm_db_authdb",
-    ]:
-        mongodb_uri_elements.append((var, os.environ.get(var)))
+    
+    mongodb_uri_elements = [
+        ("ssm_username", "db_ssm_username"),
+        ("ssm_pass", "db_ssm_pass"),
+        ("ssm_host", "db_ssm_host"),
+        ("ssm_port", "db_ssm_port"),
+        ("ssm_authdb", "db_ssm_authdb")
+    ]
 
     # Check that we have all of the required variables
     if missing_variables := [k for k, v in mongodb_uri_elements if v is None]:
@@ -183,13 +189,13 @@ def handler(event, context) -> None:
         return
 
     # Determine the database where the KEV data will be inserted
-    write_db = get_ssm_parameter(os.environ.get("ssm_db_writedb", "ssm_db_authdb"))
+    write_db = get_ssm_parameter("db_write_db")
 
     # Determine if a non-default KEVs JSON URL is being used
     kev_json_url = os.environ.get("json_url", DEFAULT_KEV_URL)
 
     # Determine if a non-default collection is being used
-    db_collection = os.environ.get("ssm_db_collection")
+    db_collection = os.environ.get("db_collection")
     if db_collection is not None:
         KEVDoc.Settings.name = get_ssm_parameter(db_collection)
 
