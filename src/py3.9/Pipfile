@@ -10,6 +10,7 @@ python_version = "3.9"
 beanie = "*"
 boto3 = "*"
 botocore = "*"
+localstack-client = "*"
 # This is a dependency of Beanie but we explicitly import it so we should mark
 # it as a requirement.
 motor = "*"

@@ -12,9 +12,10 @@ import urllib.request
 # Third-Party Libraries
 from beanie import Document, init_beanie
 from beanie.operators import NotIn
-from boto3 import client as boto3_client
+# from boto3 import client as boto3_client
 from botocore.exceptions import ClientError
 from motor.motor_asyncio import AsyncIOMotorClient
+import localstack_client.session as boto3
 
 
 default_log_level = "INFO"
@@ -25,7 +26,7 @@ DEFAULT_KEV_URL = "https://www.cisa.gov/sites/default/files/feeds/known_exploite
 DEFAULT_KEV_COLLECTION = "cyhy"
 
 motor_client: AsyncIOMotorClient = None
-ssm_client: boto3_client = None
+ssm_client: boto3 = None
 
 class KEVDoc(Document):
     """Python class that represents a KEV document."""
@@ -152,13 +153,8 @@ def handler(event, context) -> None:
 
        # Set up the SSM client if necessary
     if ssm_client is None:
-        ssm_client = boto3_client(
-            'ssm',
-            region_name='us-east-1',  # Replace with the desired AWS region
-            endpoint_url='http://localhost:4566',
-            aws_access_key_id='test',  # Arbitrary access key ID for LocalStack
-            aws_secret_access_key='test'  # Arbitrary secret access key for LocalStack
-)
+        ssm_client = boto3.client('ssm')
+        
 
     mongodb_uri_elements: List[Tuple[str, Optional[str]]] = []
 
