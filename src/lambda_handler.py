@@ -12,10 +12,11 @@ import urllib.request
 # Third-Party Libraries
 from beanie import Document, init_beanie
 from beanie.operators import NotIn
-# from boto3 import client as boto3_client
 from botocore.exceptions import ClientError
 from motor.motor_asyncio import AsyncIOMotorClient
 import localstack_client.session as boto3
+# import boto3
+
 
 
 default_log_level = "INFO"
@@ -154,8 +155,10 @@ def handler(event, context) -> None:
        # Set up the SSM client if necessary
     if ssm_client is None:
         ssm_client = boto3.client('ssm')
+        # ssm_client = boto3.client('ssm',
+                                #   region_name = 'us-east-1',
+                                #   endpoint_url='http://localhost:4566')
         
-
     mongodb_uri_elements: List[Tuple[str, Optional[str]]] = []
 
     # This only runs from a CloudWatch scheduled event invocation
