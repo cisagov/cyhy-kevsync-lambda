@@ -14,7 +14,7 @@ from beanie import Document, init_beanie
 from beanie.operators import NotIn
 from botocore.exceptions import ClientError
 from motor.motor_asyncio import AsyncIOMotorClient
-import localstack_client.session as boto3
+import boto3
 
 default_log_level = "INFO"
 logger = logging.getLogger()
@@ -23,6 +23,7 @@ logger.setLevel(default_log_level)
 DEFAULT_KEV_URL = "https://www.cisa.gov/sites/default/files/feeds/known_exploited_vulnerabilities.json"
 DEFAULT_KEV_COLLECTION = "cyhy"
 
+ssm_client: boto3 = None
 motor_client: AsyncIOMotorClient = None
 class KEVDoc(Document):
     """Python class that represents a KEV document."""
@@ -149,7 +150,11 @@ def handler(event, context) -> None:
 
        # Set up the SSM client if necessary
     if ssm_client is None:
-      ssm_client = boto3.client('ssm')
+      ssm_client = boto3.client("ssm",
+                                region_name="us-east-1",
+                                aws_access_key_id= "none",
+                                aws_secret_access_key = "none",
+                                endpoint_url = "http://host.docker.internal:4566")
     
     mongodb_uri_elements: List[Tuple[str, Optional[str]]] = []
 
