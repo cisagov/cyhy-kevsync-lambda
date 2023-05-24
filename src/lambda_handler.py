@@ -15,9 +15,6 @@ from beanie.operators import NotIn
 from botocore.exceptions import ClientError
 from motor.motor_asyncio import AsyncIOMotorClient
 import localstack_client.session as boto3
-# import boto3
-
-
 
 default_log_level = "INFO"
 logger = logging.getLogger()
@@ -27,8 +24,6 @@ DEFAULT_KEV_URL = "https://www.cisa.gov/sites/default/files/feeds/known_exploite
 DEFAULT_KEV_COLLECTION = "cyhy"
 
 motor_client: AsyncIOMotorClient = None
-ssm_client: boto3 = None
-
 class KEVDoc(Document):
     """Python class that represents a KEV document."""
 
@@ -154,11 +149,8 @@ def handler(event, context) -> None:
 
        # Set up the SSM client if necessary
     if ssm_client is None:
-        ssm_client = boto3.client('ssm')
-        # ssm_client = boto3.client('ssm',
-                                #   region_name = 'us-east-1',
-                                #   endpoint_url='http://localhost:4566')
-        
+      ssm_client = boto3.client('ssm')
+    
     mongodb_uri_elements: List[Tuple[str, Optional[str]]] = []
 
     # This only runs from a CloudWatch scheduled event invocation
