@@ -13,15 +13,8 @@ deployment configuration:
 
 | Name | Description | Type | Default | Required |
 | ---- | ----------- | ---- | ------- | -------- |
-| json\_url | The URL for the JSON to be processed. | `string` | `"https://www.cisa.gov/sites/default/files/feeds/known_exploited_vulnerabilities.json"` | no |
-| log\_level | The logging level for the Lambda. | `string` | `"INFO"` | no |
-| ssm\_db\_authdb | The AWS SSM Parameter Store key that contains the authorization database to use for the MongoDB connection. | `string` | n/a | yes |
-| ssm\_db\_collection | The AWS SSM Parameter Store key that contains the MongoDB collection to write to in the MongoDB database. | `string` | The default collection is used if this variable is not provided. | no |
-| ssm\_db\_host | The AWS SSM Parameter Store key that contains the hostname for the database to use for the MongoDB connection. | `string` | n/a | yes |
-| ssm\_db\_pass | The AWS SSM Parameter Store key that contains the password for authenticating to the database to use for the MongoDB connection. | `string` | n/a | yes |
-| ssm\_db\_port | The AWS SSM Parameter Store key that contains the port for the database to use for the MongoDB connection. | `string` | n/a | yes |
-| ssm\_db\_user | The AWS SSM Parameter Store key that contains the username for authenticating to the database to use for the MongoDB connection. | `string` | n/a | yes |
-| ssm\_db\_writedb | The AWS SSM Parameter Store key that contains the logical database to write to on the database. | `string` | The value of the `ssm_db_authdb` variable. | no |
+| CYHY_CONFIG_PATH | The path to the configuration file. | `string` | The default search behavior is used if this variable is not provided. | no |
+| CYHY_CONFIG_SSM_PATH | The AWS SSM Parameter Store key that contains the configuration file. | `string` | SSM will not be accessed if this variable is not provided. | no |
 
 ## Building the base Lambda image ##
 
@@ -44,6 +37,33 @@ docker compose up build_deployment_package
 ```
 
 This will output the deployment zip file in the root directory.
+
+## Testing the Lambda locally ##
+
+Create a configuration file named `cyhy-mine.toml` in the repository root with
+the following content:
+
+```toml
+[kevsync]
+db_auth_uri = "mongodb://username:password@host.docker.internal:27018/cyhy"
+db_name = "cyhy"
+json_url = "https://www.cisa.gov/sites/default/files/feeds/known_exploited_vulnerabilities.json"
+log_level = "DEBUG"
+schema_url = "https://www.cisa.gov/sites/default/files/feeds/known_exploited_vulnerabilities_schema.json"
+```
+
+Start the Lambda locally with the following command:
+
+```shell
+docker compose up run_lambda_locally
+```
+
+The lambda can be invoked locally by sending a POST request to the local endpoint:
+
+```shell
+curl "http://localhost:9000/2015-03-31/functions/function/invocations" \
+     --data '{"source":"aws.events", "detail-type":"Scheduled Event"}'
+```
 
 ## How to update Python dependencies ##
 
