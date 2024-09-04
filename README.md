@@ -58,7 +58,7 @@ Start the Lambda locally with the following command:
 docker compose up run_lambda_locally
 ```
 
-The lambda can be invoked locally by sending a POST request to the local endpoint:
+The lambda can be invoked by sending a POST request to the local endpoint:
 
 ```shell
 curl "http://localhost:9000/2015-03-31/functions/function/invocations" \
@@ -76,7 +76,7 @@ that will be installed. These files can be updated like so (using the Python
 3.9 configuration as an example):
 
 ```console
-cd src/py3.9
+cd src/py3.12
 pipenv lock
 ```
 
