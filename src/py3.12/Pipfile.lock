@@ -74,7 +74,7 @@
     },
     "cyhy-kevsync": {
       "git": "https://github.com/cisagov/cyhy-kevsync.git",
-      "ref": "1c7387c85d5c783c2763b1d8d2163c12932a29b2"
+      "ref": "4ea9960b781d0b0e8151bdd7cc3809d310c77726"
     },
     "dnspython": {
       "hashes": [
