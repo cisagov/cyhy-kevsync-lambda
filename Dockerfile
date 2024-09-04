@@ -14,6 +14,9 @@ RUN python3 -m pip install --no-cache-dir \
   # to pip with the --extra-pip-args option.
   && python3 -m pip install --no-cache-dir "pipenv>=2022.9.8"
 
+# Install git to allow pipenv to install dependencies from git repositories.
+RUN dnf update -y && dnf install -y git
+
 WORKDIR /tmp
 
 # Copy in the dependency files.
