@@ -1,0 +1,10 @@
+[[source]]
+url = "https://pypi.org/simple"
+verify_ssl = true
+name = "pypi"
+
+[requires]
+python_version = "3.12"
+
+[packages]
+cyhy-kevsync = {git = "https://github.com/cisagov/cyhy-kevsync.git", ref = "first-commits"}
