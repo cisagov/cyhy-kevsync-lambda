@@ -1,17 +1,19 @@
 ---
-version: '3.2'
+secrets:
+  cyhy_config:
+    file: ./cyhy-mine.toml
 
 services:
   build_deployment_package:
     build: .
     # This uses the value of the LAMBDA_TAG environment variable from
     # the invoking environment but falls back to a default value.
-    image: cisagov/kevsync_lambda:${LAMBDA_TAG:-latest}
     entrypoint: /opt/build_artifact.sh
     environment:
       # This uses the value of the BUILD_FILE_NAME environment variable
       # from the invoking environment but falls back to a default value.
       - BUILD_FILE_NAME=${BUILD_FILE_NAME:-lambda_build.zip}
+    image: cisagov/kevsync_lambda:${LAMBDA_TAG:-latest}
     volumes:
       - ./src/build_artifact.sh:/opt/build_artifact.sh
       - .:/var/task/output
@@ -19,6 +21,11 @@ services:
     build: .
     # This uses the value of the LAMBDA_TAG environment variable from
     # the invoking environment but falls back to a default value.
+    environment:
+      - CYHY_CONFIG_PATH=/run/secrets/cyhy.toml
     image: cisagov/kevsync_lambda:${LAMBDA_TAG:-latest}
     ports:
       - "9000:8080"
+    secrets:
+      - source: cyhy_config
+        target: cyhy.toml
