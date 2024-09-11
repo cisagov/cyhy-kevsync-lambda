@@ -28,6 +28,11 @@ COPY src/py$PY_VERSION/ .
 # underlying pip calls.
 RUN pipenv sync --system --extra-pip-args="--no-cache-dir --target ${LAMBDA_TASK_ROOT}"
 
+# Download the AWS CA certificate bundle so the Lambda function can securely
+# communicate with AWS DocumentDB.
+RUN curl https://truststore.pki.rds.amazonaws.com/global/global-bundle.pem \
+  --output ${LAMBDA_TASK_ROOT}/global-bundle.pem
+
 FROM amazon/aws-lambda-python:$PY_VERSION as build-stage
 
 ###
