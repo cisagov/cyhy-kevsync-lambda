@@ -31,6 +31,7 @@ def handler(event, context) -> None:
     except Exception as err:
         # Log the exception and throw it to indicate failure of the Lambda.
         logging.exception(err)
+        raise
 
     # Return None to indicate success of the Lambda.
     return None
