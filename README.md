@@ -55,15 +55,15 @@ schema_url = "https://www.cisa.gov/sites/default/files/feeds/known_exploited_vul
 
 Start the Lambda locally with the following command:
 
-```shell
+```console
 docker compose up run_lambda_locally
 ```
 
-The lambda can be invoked by sending a POST request to the local endpoint:
+The Lambda can be invoked by sending a POST request to the local endpoint:
 
-```shell
+```console
 curl "http://localhost:9000/2015-03-31/functions/function/invocations" \
-     --data '{"source":"aws.events", "detail-type":"Scheduled Event"}'
+     --data '{}'
 ```
 
 ## How to update Python dependencies ##
@@ -74,7 +74,7 @@ should be made to the respective `src/py<Python version>/Pipfile`. More
 information about the `Pipfile` format can be found [here](https://pipenv.pypa.io/en/latest/basics/#example-pipfile-pipfile-lock).
 The accompanying `Pipfile.lock` files contain the specific dependency versions
 that will be installed. These files can be updated like so (using the Python
-3.9 configuration as an example):
+3.12 configuration as an example):
 
 ```console
 cd src/py3.12
