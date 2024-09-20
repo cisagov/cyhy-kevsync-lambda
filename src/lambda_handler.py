@@ -18,16 +18,6 @@ def handler(event, context) -> None:
     :param context: The context in which the function is called.
     :return: The result of the action.
     """
-    # This only runs from a CloudWatch scheduled event invocation
-    trigger_type = ""
-    if (trigger_source := event.get("source", "")) != "aws.events" or (
-        trigger_type := event.get("detail-type", "")
-    ) != "Scheduled Event":
-        logging.error(
-            "Invalid invocation event: source=%s, type=%s", trigger_source, trigger_type
-        )
-        return
-
     try:
         asyncio.run(do_kev_sync())
     except Exception as err:
