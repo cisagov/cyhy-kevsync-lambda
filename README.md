@@ -15,6 +15,7 @@ deployment configuration:
 | ---- | ----------- | ---- | ------- | -------- |
 | CYHY_CONFIG_PATH | The path to the configuration file. | `string` | The default search behavior is used if this variable is not provided. | no |
 | CYHY_CONFIG_SSM_PATH | The AWS SSM Parameter Store key that contains the configuration file. | `string` | SSM will not be accessed if this variable is not provided. | no |
+| CYHY_LOG_LEVEL | The logging level for the Lambda. | `string` | `INFO` | no |
 
 ## Building the base Lambda image ##
 
