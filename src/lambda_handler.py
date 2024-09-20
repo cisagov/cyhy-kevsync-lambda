@@ -1,4 +1,4 @@
-"""Simple AWS Lambda handler to verify functionality."""
+"""AWS Lambda handler to synchronize Known Exploited Vulnerabilities (KEV) data with a Cyber Hygiene database."""
 
 # Standard Python Libraries
 import asyncio
