@@ -1,5 +1,5 @@
 #!/usr/bin/env pytest -vs
-"""Version tests for AWS Lambda Python skeleton project."""
+"""Version tests for this project."""
 
 # Standard Python Libraries
 import os
