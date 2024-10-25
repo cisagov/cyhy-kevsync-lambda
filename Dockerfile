@@ -1,18 +1,21 @@
-ARG PY_VERSION=3.9
+ARG PY_VERSION=3.12
 
 FROM amazon/aws-lambda-python:$PY_VERSION as install-stage
 
 # Declare it a second time so it's brought into this scope.
-ARG PY_VERSION=3.9
+ARG PY_VERSION
 
 # Install the Python packages necessary to install the Lambda dependencies.
 RUN python3 -m pip install --no-cache-dir \
-    pip \
-    setuptools \
-    wheel \
+  pip \
+  setuptools \
+  wheel \
   # This version of pipenv is the minimum version to allow passing arguments
   # to pip with the --extra-pip-args option.
   && python3 -m pip install --no-cache-dir "pipenv>=2022.9.8"
+
+# Install git to allow pipenv to install dependencies from git repositories.
+RUN dnf update -y && dnf install -y git
 
 WORKDIR /tmp
 
@@ -24,6 +27,11 @@ COPY src/py$PY_VERSION/ .
 # The --extra-pip-args option is used to pass necessary arguments to the
 # underlying pip calls.
 RUN pipenv sync --system --extra-pip-args="--no-cache-dir --target ${LAMBDA_TASK_ROOT}"
+
+# Download the AWS CA certificate bundle so the Lambda function can securely
+# communicate with AWS DocumentDB.
+RUN curl https://truststore.pki.rds.amazonaws.com/global/global-bundle.pem \
+  --output ${LAMBDA_TASK_ROOT}/global-bundle.pem
 
 FROM amazon/aws-lambda-python:$PY_VERSION as build-stage
 
@@ -41,7 +49,7 @@ LABEL org.opencontainers.image.authors="github@cisa.dhs.gov"
 LABEL org.opencontainers.image.vendor="Cybersecurity and Infrastructure Security Agency"
 
 # Declare it a third time so it's brought into this scope.
-ARG PY_VERSION=3.9
+ARG PY_VERSION
 
 # This must be present in the image to generate a deployment artifact.
 ENV BUILD_PY_VERSION=$PY_VERSION

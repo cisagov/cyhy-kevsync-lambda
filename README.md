@@ -2,13 +2,20 @@
 
 [![GitHub Build Status](https://github.com/cisagov/cyhy-kevsync-lambda/workflows/build/badge.svg)](https://github.com/cisagov/cyhy-kevsync-lambda/actions)
 
-This is a generic skeleton project that can be used to quickly get a
-new [cisagov](https://github.com/cisagov) GitHub
-[AWS Lambda](https://aws.amazon.com/lambda/) project using the Python runtimes
-started. This skeleton project contains [licensing information](LICENSE), as
-well as [pre-commit hooks](https://pre-commit.com) and
-[GitHub Actions](https://github.com/features/actions) configurations
-appropriate for the major languages that we use.
+This Lambda is designed to retrieve the [CISA Known Exploited Vulnerabilities Catalog](https://www.cisa.gov/known-exploited-vulnerabilities-catalog)
+[JSON version](https://www.cisa.gov/sites/default/files/feeds/known_exploited_vulnerabilities_schema.json)
+and import the CVE IDs into a MongoDB collection.
+
+## Lambda configuration ##
+
+This Lambda supports the following Lambda environment variables in its
+deployment configuration:
+
+| Name | Description | Type | Default | Required |
+| ---- | ----------- | ---- | ------- | -------- |
+| `CYHY_CONFIG_PATH` | The path to the configuration file. | `string` | The default search behavior is used if this variable is not provided. | no |
+| `CYHY_CONFIG_SSM_PATH` | The AWS SSM Parameter Store key that contains the configuration file. | `string` | SSM will not be accessed if this variable is not provided. | no |
+| `CYHY_LOG_LEVEL` | The logging level for the Lambda. | `string` | `INFO` | no |
 
 ## Building the base Lambda image ##
 
@@ -32,29 +39,31 @@ docker compose up build_deployment_package
 
 This will output the deployment zip file in the root directory.
 
-## Running the Lambda locally ##
+## Testing the Lambda locally ##
 
-The configuration in this repository allows you run the Lambda locally for
-testing as long as you do not need explicit permissions for other AWS
-services. This can be done with the following command:
+Create a configuration file named `cyhy-mine.toml` in the repository root with
+the following content:
 
-```console
-docker compose up --detach run_lambda_locally
+```toml
+[kevsync]
+db_auth_uri = "mongodb://username:password@host.docker.internal:27018/cyhy"
+db_name = "cyhy"
+json_url = "https://www.cisa.gov/sites/default/files/feeds/known_exploited_vulnerabilities.json"
+log_level = "DEBUG"
+schema_url = "https://www.cisa.gov/sites/default/files/feeds/known_exploited_vulnerabilities_schema.json"
 ```
 
-You can then invoke the Lambda using the following:
+Start the Lambda locally with the following command:
 
 ```console
- curl -XPOST "http://localhost:9000/2015-03-31/functions/function/invocations" -d '{}'
+docker compose up run_lambda_locally
 ```
 
-The `{}` in the command is the invocation event payload to send to the Lambda
-and would be the value given as the `event` argument to the handler.
-
-Once you are finished you can stop the detached container with the following command:
+The Lambda can be invoked by sending a POST request to the local endpoint:
 
 ```console
-docker compose down
+curl "http://localhost:9000/2015-03-31/functions/function/invocations" \
+     --data '{}'
 ```
 
 ## How to update Python dependencies ##
@@ -65,19 +74,12 @@ should be made to the respective `src/py<Python version>/Pipfile`. More
 information about the `Pipfile` format can be found [here](https://pipenv.pypa.io/en/latest/basics/#example-pipfile-pipfile-lock).
 The accompanying `Pipfile.lock` files contain the specific dependency versions
 that will be installed. These files can be updated like so (using the Python
-3.9 configuration as an example):
+3.12 configuration as an example):
 
 ```console
-cd src/py3.9
+cd src/py3.12
 pipenv lock
 ```
-
-## New Repositories from a Skeleton ##
-
-Please see our [Project Setup guide](https://github.com/cisagov/development-guide/tree/develop/project_setup)
-for step-by-step instructions on how to start a new repository from
-a skeleton. This will save you time and effort when configuring a
-new repository!
 
 ## Contributing ##
 
