@@ -30,7 +30,7 @@ RUN curl https://truststore.pki.rds.amazonaws.com/global/global-bundle.pem \
   --output ${LAMBDA_TASK_ROOT}/global-bundle.pem
 
 # The runtime tag must match the version of Python specified in the Pipfile.
-FROM amazon/aws-lambda-python:3.12 as build-stage
+FROM amazon/aws-lambda-python:3.12 AS build-stage
 
 ###
 # For a list of pre-defined annotation keys and value types see:
