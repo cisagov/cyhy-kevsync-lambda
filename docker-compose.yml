@@ -15,7 +15,7 @@ services:
       - BUILD_FILE_NAME=${BUILD_FILE_NAME:-lambda_build.zip}
     image: cisagov/kevsync_lambda:${LAMBDA_TAG:-latest}
     volumes:
-      - ./src/build_artifact.sh:/opt/build_artifact.sh
+      - ./build/build_artifact.sh:/opt/build_artifact.sh
       - .:/var/task/output
   run_lambda_locally:
     build: .
