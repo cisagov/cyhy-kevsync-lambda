@@ -1,6 +1,8 @@
 # cyhy-kevsync-lambda #
 
 [![GitHub Build Status](https://github.com/cisagov/cyhy-kevsync-lambda/workflows/build/badge.svg)](https://github.com/cisagov/cyhy-kevsync-lambda/actions)
+[![License](https://img.shields.io/github/license/cisagov/cyhy-kevsync-lambda)](https://spdx.org/licenses/)
+[![CodeQL](https://github.com/cisagov/cyhy-kevsync-lambda/workflows/CodeQL/badge.svg)](https://github.com/cisagov/cyhy-kevsync-lambda/actions/workflows/codeql-analysis.yml)
 
 This Lambda is designed to retrieve the [CISA Known Exploited Vulnerabilities Catalog](https://www.cisa.gov/known-exploited-vulnerabilities-catalog)
 [JSON version](https://www.cisa.gov/sites/default/files/feeds/known_exploited_vulnerabilities_schema.json)
