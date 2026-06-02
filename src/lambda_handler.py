@@ -1,4 +1,7 @@
-"""AWS Lambda handler to synchronize Known Exploited Vulnerabilities (KEV) data with a Cyber Hygiene database."""
+"""Synchronize KEV data with a Cyber Hygiene database.
+
+Here KEV stands for Known Exploited Vulnerabilities.
+"""
 
 # Standard Python Libraries
 import asyncio
